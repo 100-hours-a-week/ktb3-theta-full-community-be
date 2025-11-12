@@ -40,7 +40,7 @@ public class ArticleQueryService {
 				page,
 				articles.getTotalElements(),
 				articles.getTotalPages(),
-				articles.isLast());
+				articles.hasNext());
     }
 
     public ArticleResponseDto getArticle(Long articleId) {

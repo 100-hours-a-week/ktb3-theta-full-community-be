@@ -7,7 +7,6 @@ import ktb.week4.community.domain.comment.entity.Comment;
 import ktb.week4.community.domain.comment.repository.CommentRepository;
 import ktb.week4.community.domain.user.entity.User;
 import ktb.week4.community.domain.user.enums.Status;
-import ktb.week4.community.domain.user.loader.UserLoader;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -44,6 +43,6 @@ public class CommentQueryService {
 				page,
 				comments.getTotalElements(),
 				comments.getTotalPages(),
-				comments.isLast());
+				comments.hasNext());
 	}
 }

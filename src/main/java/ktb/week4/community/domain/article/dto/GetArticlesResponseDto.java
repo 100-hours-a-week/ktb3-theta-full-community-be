@@ -8,6 +8,6 @@ public record GetArticlesResponseDto(
 		long currentPage,
 		long totalCount,
 		long totalPages,
-		boolean isLast
+		boolean hasNext
 ) {
 }

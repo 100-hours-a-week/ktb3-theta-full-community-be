@@ -7,6 +7,6 @@ public record GetCommentsResponseDto(
         int currentPage,
         long totalCount,
         int totalPages,
-        boolean isLast
+        boolean hasNext
 ) {
 }
