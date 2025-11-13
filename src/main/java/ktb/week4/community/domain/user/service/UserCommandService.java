@@ -33,6 +33,8 @@ public class UserCommandService {
 	
 	public UserResponseDto updateUser(Long userId, UpdateUserRequestDto request) {
 		User user = userLoader.getUserById(userId);
+		userValidator.validateNicknameIsNotTaken(request.nickname());
+		
 		if(!request.nickname().isEmpty()) {
 			user.changeNickname(request.nickname());
 		}
