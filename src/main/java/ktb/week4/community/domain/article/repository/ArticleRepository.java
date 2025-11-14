@@ -8,5 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ArticleRepository extends JpaRepository<Article, Long> {
 	@EntityGraph(attributePaths = {"user"})
-	Page<Article> findAllByDeletedAtIsNullOrderByCreatedAt(Pageable pageable);
+	Page<Article> findAllByDeletedAtIsNullOrderByCreatedAtDesc(Pageable pageable);
 }

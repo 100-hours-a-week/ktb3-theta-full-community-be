@@ -50,9 +50,6 @@ public class ArticleCommandService {
 		if(!request.content().isEmpty()) {
 			article.changeContent(request.content());
 		}
-		if(!request.articleImage().isEmpty()) {
-			article.changeArticleImage(request.articleImage());
-		}
 		
 		Article updatedArticle = articleRepository.save(article);
 		return ArticleResponseDto.fromEntity(updatedArticle, writtenBy);
