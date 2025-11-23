@@ -7,6 +7,7 @@ import ktb.week4.community.domain.user.repository.UserRepository;
 import ktb.week4.community.domain.user.validator.UserValidator;
 import ktb.week4.community.global.file.FileStorageService;
 import lombok.AllArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -19,6 +20,7 @@ public class UserCommandService {
 	private final UserRepository userRepository;
 	private final UserLoader userLoader;
 	private final UserValidator userValidator;
+	private final PasswordEncoder passwordEncoder;
 	private final FileStorageService fileStorageService;
 	private static final String DEFAULT_PROFILE_IMAGE = "/assets/images/user.svg";
 	
@@ -28,7 +30,7 @@ public class UserCommandService {
 		
 		User user = userRepository.save(new User(
 				request.nickname(),
-				request.password(),
+				passwordEncoder.encode(request.password()),
 				request.email(),
 				request.profileImage()
 		));
@@ -67,7 +69,7 @@ public class UserCommandService {
 	
 	public void updatePassword(Long userId, UpdatePasswordRequestDto request) {
 		User user = userLoader.getUserById(userId);
-		user.changePassword(request.password());
+		user.changePassword(passwordEncoder.encode(request.password()));
 		userRepository.save(user);
 	}
 }

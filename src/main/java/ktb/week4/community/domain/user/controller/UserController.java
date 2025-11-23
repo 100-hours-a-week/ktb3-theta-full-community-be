@@ -63,7 +63,7 @@ public class UserController implements UserApiSpecification {
 	@Override
 	@PostMapping("/auth/login")
 	public ApiResponse<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
-		return ApiResponse.onSuccess(SuccessCode.SUCCESS, userQueryService.login(loginRequestDto));
+		return ApiResponse.onSuccess(SuccessCode.SUCCESS, null);
 	}
 	
 	@Override

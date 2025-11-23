@@ -45,6 +45,7 @@ public interface UserApiSpecification {
 	@ApiResponses({
 			@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "로그아웃 성공"),
 	})
+	
 	ResponseEntity<Void> logout(
 			@Parameter(description = "로그아웃 할 사용자의 id", required = true, example = "1") Long userId);
 }

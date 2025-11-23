@@ -12,11 +12,11 @@ public record SignUpRequestDto(
 		@Email
 		String email,
 		
-		@Schema(description = "비밀번호", example = "password1234")
+		@Schema(description = "비밀번호", example = "qQ12345!!")
 		@NotBlank(message = "비밀번호는 필수입니다.")
 		String password,
 		
-		@Schema(description = "사용자 별명", example = "다이빙 하는 돌고래")
+		@Schema(description = "사용자 별명", example = "닉네임")
 		@NotBlank(message = "사용자 별명은 필수입니다.")
 		String nickname,
 		
