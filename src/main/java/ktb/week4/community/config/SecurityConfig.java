@@ -5,11 +5,14 @@ import ktb.week4.community.domain.user.dto.LoginResponseDto;
 import ktb.week4.community.global.apiPayload.ApiResponse;
 import ktb.week4.community.global.apiPayload.SuccessCode;
 import ktb.week4.community.security.CustomUserDetails;
+import ktb.week4.community.security.JwtTokenProvider;
 import ktb.week4.community.security.filter.JsonAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -24,6 +27,7 @@ public class SecurityConfig {
 	
 	private final AuthenticationConfiguration authenticationConfiguration;
 	private final ObjectMapper objectMapper;
+	private final JwtTokenProvider jwtTokenProvider;
 	
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -56,6 +60,20 @@ public class SecurityConfig {
 			response.setStatus(200);
 			response.setContentType("application/json;charset=UTF-8");
 			CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+			
+			ResponseCookie accessToken = ResponseCookie.from("accessToken", jwtTokenProvider.createToken(authentication, 60))
+					.path("/")
+					.maxAge(60 * 60)
+					.httpOnly(true)
+					.build();
+			response.addHeader(HttpHeaders.SET_COOKIE, accessToken.toString());
+			
+			ResponseCookie refreshToken = ResponseCookie.from("refreshToken", jwtTokenProvider.createToken(authentication, 7 * 24 * 60))
+					.path("/auth/")
+					.maxAge(7 * 24 * 60 * 60)
+					.httpOnly(true)
+					.build();
+			response.addHeader(HttpHeaders.SET_COOKIE, refreshToken.toString());
 			
 			response.getWriter().write(objectMapper.writeValueAsString(
 					ApiResponse.onSuccess(SuccessCode.SUCCESS, new LoginResponseDto(
