@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -35,19 +34,8 @@ public class JwtFilter extends OncePerRequestFilter {
 					.map(Cookie::getValue)
 					.findFirst()
 					.orElse(null);
-			
+
 			try {
-				String requestURI = request.getRequestURI();
-			
-				if ((request.getMethod().equals("GET") && (
-						requestURI.equals("/articles") ||
-						requestURI.startsWith("/swagger-ui") ||
-						requestURI.startsWith("/v3/api-docs") ||
-						requestURI.startsWith("/swagger-resources"))) ||
-						requestURI.equals("/auth/refresh")) {
-					filterChain.doFilter(request, response);
-					return;
-				}
 				jwtTokenProvider.validateToken(accessToken);
 				
 				Authentication auth = jwtTokenProvider.resolveToken(accessToken);

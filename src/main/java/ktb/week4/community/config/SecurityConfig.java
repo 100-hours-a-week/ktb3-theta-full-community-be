@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ktb.week4.community.domain.user.dto.LoginResponseDto;
 import ktb.week4.community.global.apiPayload.ApiResponse;
 import ktb.week4.community.global.apiPayload.SuccessCode;
+import ktb.week4.community.security.CustomAuthenticationEntryPoint;
 import ktb.week4.community.security.CustomUserDetails;
 import ktb.week4.community.security.JwtTokenProvider;
 import ktb.week4.community.security.filter.JsonAuthenticationFilter;
@@ -39,6 +40,10 @@ public class SecurityConfig {
 				.httpBasic(AbstractHttpConfigurer::disable)
 				// 임시 처리
 				.formLogin(AbstractHttpConfigurer::disable)
+				.exceptionHandling(exception -> {
+							exception.authenticationEntryPoint(new CustomAuthenticationEntryPoint(objectMapper));
+						}
+				)
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**").permitAll()
 						.requestMatchers(HttpMethod.POST, "/auth/login/**",  "/users/**").anonymous()
