@@ -12,13 +12,13 @@ public class UserValidator {
 	private final UserRepository userRepository;
 	
 	public void validateEmailIsNotTaken(String email) {
-		if (userRepository.findByEmail(email).isPresent()) {
+		if (userRepository.existsByEmail(email)) {
 			throw new GeneralException(ErrorCode.EMAIL_ALREADY_EXISTS);
 		}
 	}
 	
 	public void validateNicknameIsNotTaken(String nickname) {
-		if (userRepository.findByNickname(nickname).isPresent()) {
+		if (userRepository.existsByNickname(nickname)) {
 			throw new GeneralException(ErrorCode.NICKNAME_ALREADY_EXISTS);
 		}
 	}
