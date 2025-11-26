@@ -16,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
@@ -102,5 +104,38 @@ public class AuthIntegrationTest {
 		mockMvc.perform(
 				get("/users")
 		).andExpect(status().is4xxClientError());
+	}
+	
+	@Test
+	@DisplayName("로그아웃 성공 시 쿠키 만료")
+	void shouldExpireCookieIfLogoutSuccess() throws Exception {
+		// given
+		MvcResult loginResult = mockMvc.perform(
+						post("/auth/login")
+								.contentType(MediaType.APPLICATION_JSON)
+								.content(objectMapper.writeValueAsString(
+										new LoginRequestDto(email, password)
+								))
+				)
+				.andExpect(status().is2xxSuccessful())
+				.andReturn();
+		
+		Cookie accessTokenCookie = loginResult.getResponse().getCookie("accessToken");
+		Cookie refreshTokenCookie = loginResult.getResponse().getCookie("refreshToken");
+		
+		// when
+		MvcResult logoutResult = mockMvc.perform(
+						post("/auth/logout")
+								.cookie(accessTokenCookie, refreshTokenCookie)
+				)
+				.andExpect(status().is2xxSuccessful())
+				.andReturn();
+		
+		Cookie expiredAccess = logoutResult.getResponse().getCookie("accessToken");
+		Cookie expiredRefresh = logoutResult.getResponse().getCookie("refreshToken");
+		
+		//then
+		assertEquals(0, expiredAccess.getMaxAge());
+		assertEquals(0, expiredRefresh.getMaxAge());
 	}
 }
