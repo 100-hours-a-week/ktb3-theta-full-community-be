@@ -65,15 +65,16 @@ public class AuthController implements AuthApiSpecification {
 					.path("/")
 					.maxAge(60 * 60)
 					.httpOnly(true)
-					.sameSite("Strict")
+					.sameSite("None")
+					.secure(true)
 					.build();
 			response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
 			
 			ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", jwtTokenProvider.createToken(auth, 3 * 24 * 60))
 					.path("/auth/")
 					.httpOnly(true)
-					.secure(false)
-					.sameSite("Strict")
+					.secure(true)
+					.sameSite("None")
 					.maxAge(7 * 24 * 60 * 60)
 					.build();
 			

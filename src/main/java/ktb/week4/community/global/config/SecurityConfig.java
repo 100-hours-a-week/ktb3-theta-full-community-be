@@ -17,7 +17,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -30,6 +32,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
+@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 	
@@ -42,22 +45,23 @@ public class SecurityConfig {
 		http
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 				.csrf(AbstractHttpConfigurer::disable)
-				.httpBasic(AbstractHttpConfigurer::disable)
-				// 임시 처리
+				.sessionManagement(sessionManagement ->
+						sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.formLogin(AbstractHttpConfigurer::disable)
+				.httpBasic(AbstractHttpConfigurer::disable)
 				.exceptionHandling(exception -> {
 							exception.authenticationEntryPoint(new CustomAuthenticationEntryPoint(objectMapper));
 						}
 				)
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**").permitAll()
+						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**", "/uploads/**", "/error/**").permitAll()
 						.requestMatchers(HttpMethod.POST, "/auth/login/**", "/users/**").anonymous()
-						.requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()
 						.requestMatchers(HttpMethod.GET, "/articles/**").permitAll()
+						.requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()
 						.anyRequest().authenticated()
 				)
 				.addFilterAt(jsonAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-				.addFilterAt(new JwtFilter(objectMapper, jwtTokenProvider), AuthorizationFilter.class)
+				.addFilterBefore(new JwtFilter(jwtTokenProvider), AuthorizationFilter.class)
 				.logout(logout -> {
 					logout
 							.logoutUrl("/auth/logout")
@@ -66,15 +70,23 @@ public class SecurityConfig {
 								response.setContentType("application/json;charset=UTF-8");
 							})
 							.addLogoutHandler((request, response, authentication) -> {
+								ResponseCookie accessToken = ResponseCookie.from("accessToken", "")
+										.path("/")
+										.maxAge(0)
+										.httpOnly(true)
+										.sameSite("None")
+										.secure(true)
+										.build();
+								response.addHeader(HttpHeaders.SET_COOKIE, accessToken.toString());
 								ResponseCookie refreshToken = ResponseCookie.from("refreshToken", "")
 										.path("/auth/")
 										.maxAge(0)
 										.httpOnly(true)
-										.sameSite("Strict")
+										.sameSite("None")
+										.secure(true)
 										.build();
 								response.addHeader(HttpHeaders.SET_COOKIE, refreshToken.toString());
-							})
-							.deleteCookies("accessToken");
+							});
 				});
 		
 		return http.build();
@@ -84,7 +96,7 @@ public class SecurityConfig {
 		JsonAuthenticationFilter filter = new JsonAuthenticationFilter(objectMapper);
 		
 		filter.setAuthenticationManager(authenticationConfiguration.getAuthenticationManager());
-		
+		filter.setFilterProcessesUrl("/auth/login");
 		filter.setAuthenticationSuccessHandler((request, response, authentication) -> {
 			response.setStatus(200);
 			response.setContentType("application/json;charset=UTF-8");
@@ -94,7 +106,8 @@ public class SecurityConfig {
 					.path("/")
 					.maxAge(60 * 60)
 					.httpOnly(true)
-					.sameSite("Strict")
+					.sameSite("None")
+					.secure(true)
 					.build();
 			response.addHeader(HttpHeaders.SET_COOKIE, accessToken.toString());
 			
@@ -102,7 +115,8 @@ public class SecurityConfig {
 					.path("/auth/")
 					.maxAge(7 * 24 * 60 * 60)
 					.httpOnly(true)
-					.sameSite("Strict")
+					.sameSite("None")
+					.secure(true)
 					.build();
 			response.addHeader(HttpHeaders.SET_COOKIE, refreshToken.toString());
 			
