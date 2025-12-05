@@ -22,7 +22,7 @@ public class UserCommandService {
 	private final UserValidator userValidator;
 	private final PasswordEncoder passwordEncoder;
 	private final FileStorageService fileStorageService;
-	private static final String DEFAULT_PROFILE_IMAGE = "/assets/images/user.svg";
+	private static final String DEFAULT_PROFILE_IMAGE = "";
 	
 	public SignUpResponseDto createUser(SignUpRequestDto request) {
 		userValidator.validateEmailIsNotTaken(request.email());

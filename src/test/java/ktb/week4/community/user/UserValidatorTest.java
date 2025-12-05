@@ -26,7 +26,23 @@ public class UserValidatorTest {
 	
 	@Test
 	@DisplayName("이미 존재하는 이메일이면 EMAIL_ALREADY_EXISTS 예외 발생")
-	void shouldReturnExceptionIfEmailExists() {
+	void givenExistingEmail_whenValidateEmailIsNotTaken_thenThrowsEmailAlreadyExistsException() {
+		// given
+		when(userRepository.existsByEmail("email@e.com")).thenReturn(true);
+		
+		// when
+		GeneralException exc = assertThrows(
+				GeneralException.class,
+				() -> userValidator.validateEmailIsNotTaken("email@e.com")
+		);
+		
+		// then
+		assertEquals(ErrorCode.EMAIL_ALREADY_EXISTS, exc.getErrorCode());
+	}
+	
+	@Test
+	@DisplayName("이미 존재하는 이메일이면 EMAIL_ALREADY_EXISTS 예외 발생")
+	void givenDuplicateEmail_whenValidateEmailIsNotTaken_thenThrowsEmailAlreadyExistsException() {
 		// given
 		when(userRepository.existsByEmail("email@e.com")).thenReturn(true);
 		
@@ -42,7 +58,7 @@ public class UserValidatorTest {
 	
 	@Test
 	@DisplayName("이미 존재하는 닉네임이면 NICKNAME_ALREADY_EXISTS 예외 발생")
-	void shouldReturnExceptionIfNicknameExists() {
+	void givenExistingNickname_whenValidateNicknameIsNotTaken_thenThrowsNicknameAlreadyExistsException() {
 		// given
 		when(userRepository.existsByNickname("User")).thenReturn(true);
 		
