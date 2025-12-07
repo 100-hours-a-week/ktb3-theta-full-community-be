@@ -34,8 +34,8 @@ public class User extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private Status status;
 	
-	@Column(nullable = false)
-	@ColumnDefault("'/upload/user.svg'")
+	@Column
+	@ColumnDefault("")
 	private String profileImage;
 	
 	private LocalDateTime deletedAt;

@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -72,7 +73,7 @@ public class JwtTokenProvider {
 		}
 		Long id =  claims.get("userId", Long.class);
 		String userName = claims.get("userName").toString();
-		String userProfileImage = claims.get("profileImage").toString();
+		String userProfileImage = Optional.ofNullable(claims.get("profileImage")).map(Object::toString).orElse("");
 		CustomUserDetails principal = new CustomUserDetails(
 				userName, "", authorities, id, userProfileImage
 		);
