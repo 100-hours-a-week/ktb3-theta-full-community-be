@@ -10,6 +10,7 @@ import ktb.week4.community.domain.user.enums.Status;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +28,10 @@ public class CommentQueryService {
 	public GetCommentsResponseDto getComments(Long articleId, int page, int size) {
 		articleLoader.getArticleById(articleId);
 		
-		Page<Comment> comments = commentRepository.findAllByArticleId(articleId, PageRequest.of(page-1, size));
+		Page<Comment> comments = commentRepository.findAllByArticleId(
+				articleId,
+				PageRequest.of(page-1, size, Sort.by(Sort.Direction.ASC, "createdAt"))
+		);
 		
 		List<CommentResponseDto> responses = comments.stream()
 				.map(comment -> {
