@@ -116,7 +116,7 @@ class AuthenticationIntegrationTest {
 	}
 	
 	@Test
-	@DisplayName("/auth/refresh를 통해 토큰 재발급")
+	@DisplayName("/auth/refresh를 통해 토큰이 재발급된다.")
 	void givenValidRefreshToken_whenRefresh_thenReissuesTokens() {
 		
 		assertThat(mockMvc.post().uri("/auth/refresh")
@@ -134,7 +134,7 @@ class AuthenticationIntegrationTest {
 	}
 	
 	@Test
-	@DisplayName("토큰이 유효한 경우 authenticated url에 접속 가능")
+	@DisplayName("토큰이 유효한 경우 authenticated url에 접속이 가능하다.")
 	void givenValidAccessToken_whenAccessAuthenticatedEndpoint_thenSucceeds() {
 		
 		when(userQueryService.getUser(1L)).thenReturn(null);
@@ -145,7 +145,7 @@ class AuthenticationIntegrationTest {
 	}
 	
 	@Test
-	@DisplayName("토큰이 만료된 경우 authenticated url에 접속 불가능")
+	@DisplayName("토큰이 만료된 경우 authenticated url에 접속이 불가능하다.")
 	void givenExpiredAccessToken_whenAccessAuthenticatedEndpoint_thenReturnsUnauthorized() {
 		
 		when(userQueryService.getUser(1L)).thenReturn(null);
@@ -156,7 +156,7 @@ class AuthenticationIntegrationTest {
 	}
 	
 	@Test
-	@DisplayName("토큰이 없는 경우 authenticated url에 접속 불가능")
+	@DisplayName("토큰이 없는 경우 authenticated url에 접속이 불가능하다.")
 	@WithAnonymousUser
 	void givenNoAccessToken_whenAccessAuthenticatedEndpoint_thenReturnsUnauthorized() {
 		
@@ -167,7 +167,7 @@ class AuthenticationIntegrationTest {
 	}
 	
 	@Test
-	@DisplayName("토큰이 유효한 경우 anonymous url에 접속 가능")
+	@DisplayName("토큰이 유효한 경우 anonymous url에 접속이 가능하다.")
 	void givenValidAccessToken_whenAccessAnonymousEndpoint_thenSucceeds() throws Exception {
 		
 		assertThat(mockMvc
@@ -179,7 +179,7 @@ class AuthenticationIntegrationTest {
 	}
 	
 	@Test
-	@DisplayName("토큰이 만료된 경우 anonymous url에 접속 가능")
+	@DisplayName("토큰이 만료된 경우 anonymous url에 접속이 가능하다.")
 	void givenExpiredAccessToken_whenAccessAnonymousEndpoint_thenSucceeds() throws Exception {
 		
 		assertThat(mockMvc
@@ -191,7 +191,7 @@ class AuthenticationIntegrationTest {
 	}
 	
 	@Test
-	@DisplayName("토큰이 없는 경우 anonymous url에 접속 가능")
+	@DisplayName("토큰이 없는 경우 anonymous url에 접속이 가능하다.")
 	@WithAnonymousUser
 	void givenNoAccessToken_whenAccessAnonymousEndpoint_thenSucceeds() throws Exception {
 		
@@ -203,7 +203,7 @@ class AuthenticationIntegrationTest {
 	}
 	
 	@Test
-	@DisplayName("토큰이 유효한 경우 permitAll url에 접속 가능")
+	@DisplayName("토큰이 유효한 경우 permitAll url에 접속이 가능하다.")
 	void givenValidAccessToken_whenAccessPermitAllEndpoint_thenSucceeds() {
 		
 		when(articleQueryService.getArticles(1, 7)).thenReturn(null);
@@ -215,7 +215,7 @@ class AuthenticationIntegrationTest {
 	}
 	
 	@Test
-	@DisplayName("토큰이 만료된 경우 permitAll url에 접속 가능")
+	@DisplayName("토큰이 만료된 경우 permitAll url에 접속이 가능하다.")
 	@WithMockUser
 	void givenExpiredAccessToken_whenAccessPermitAllEndpoint_thenSucceeds() {
 		
@@ -228,7 +228,7 @@ class AuthenticationIntegrationTest {
 	}
 	
 	@Test
-	@DisplayName("토큰이 없는 경우 permitAll url에 접속 가능")
+	@DisplayName("토큰이 없는 경우 permitAll url에 접속이 가능하다.")
 	@WithAnonymousUser
 	void givenNoAccessToken_whenAccessPermitAllEndpoint_thenSucceeds() {
 		
@@ -237,5 +237,16 @@ class AuthenticationIntegrationTest {
 				.get().uri("/articles")
 				.param("page", "1")
 		).hasStatus2xxSuccessful();
+	}
+	
+	@Test
+	@DisplayName("잘못된 Content-Type으로 로그인 시 AuthenticationServiceException이 발생한다.")
+	void givenNonJsonContentType_whenLogin_thenReturnsClientError() throws Exception {
+		
+		assertThat(mockMvc
+				.post().uri("/auth/login")
+				.contentType(MediaType.TEXT_PLAIN)
+				.content(objectMapper.writeValueAsString(new LoginRequestDto(email, password)))
+		).hasStatus4xxClientError();
 	}
 }

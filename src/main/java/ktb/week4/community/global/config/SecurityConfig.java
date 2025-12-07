@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -36,12 +37,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 	
-	private final AuthenticationConfiguration authenticationConfiguration;
 	private final ObjectMapper objectMapper;
 	private final JwtTokenProvider jwtTokenProvider;
 	
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+		return authenticationConfiguration.getAuthenticationManager();
+	}
+	
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
 		http
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 				.csrf(AbstractHttpConfigurer::disable)
@@ -60,7 +65,7 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()
 						.anyRequest().authenticated()
 				)
-				.addFilterAt(jsonAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+				.addFilterAt(jsonAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class)
 				.addFilterBefore(new JwtFilter(jwtTokenProvider), AuthorizationFilter.class)
 				.logout(logout -> {
 					logout
@@ -92,10 +97,10 @@ public class SecurityConfig {
 		return http.build();
 	}
 	
-	private JsonAuthenticationFilter jsonAuthenticationFilter() throws Exception {
+	private JsonAuthenticationFilter jsonAuthenticationFilter(AuthenticationManager authenticationManager) {
 		JsonAuthenticationFilter filter = new JsonAuthenticationFilter(objectMapper);
 		
-		filter.setAuthenticationManager(authenticationConfiguration.getAuthenticationManager());
+		filter.setAuthenticationManager(authenticationManager);
 		filter.setFilterProcessesUrl("/auth/login");
 		filter.setAuthenticationSuccessHandler((request, response, authentication) -> {
 			response.setStatus(200);
@@ -159,4 +164,5 @@ public class SecurityConfig {
 		source.registerCorsConfiguration("/**", corsConfiguration);
 		return source;
 	}
+	
 }
