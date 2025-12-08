@@ -25,10 +25,16 @@ public class FileStorageService {
 	}
 
 	public String store(MultipartFile file, String directory) {
-		if (file == null || file.isEmpty()) {
+		if (file == null || file.isEmpty() ||
+				file.getContentType() == null || file.getContentType().isEmpty() ||
+				file.getOriginalFilename() != null || file.getOriginalFilename().isEmpty()) {
 			return null;
 		}
-
+		
+		if(!file.getContentType().startsWith("image")) {
+			throw new GeneralException(ErrorCode.FILE_FORMAT_ERROR);
+		}
+		
 		try {
 			String fileName = UUID.randomUUID() + "_" + StringUtils.cleanPath(file.getOriginalFilename());
 			Path targetDir = uploadRoot.resolve(directory).normalize();

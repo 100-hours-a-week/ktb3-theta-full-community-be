@@ -19,6 +19,7 @@ public enum ErrorCode implements BaseErrorCode {
 	NICKNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "AUTH409", "nickname_already_exists"),
 	
 	FILE_UPLOAD_ERROR(HttpStatus.CONFLICT, "AUTH409", "upload_error"),
+	FILE_FORMAT_ERROR(HttpStatus.CONFLICT, "AUTH409", "wrong_file_format"),
 	FILE_DELETE_ERROR(HttpStatus.CONFLICT, "AUTH409", "file_delete_error"),
 	
 	// 유저
