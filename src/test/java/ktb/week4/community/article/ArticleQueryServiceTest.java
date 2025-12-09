@@ -5,6 +5,7 @@ import ktb.week4.community.domain.article.entity.Article;
 import ktb.week4.community.domain.article.entity.ArticleTestBuilder;
 import ktb.week4.community.domain.article.repository.ArticleRepository;
 import ktb.week4.community.domain.article.service.ArticleQueryService;
+import ktb.week4.community.domain.user.dto.WrittenByResponseDto;
 import ktb.week4.community.domain.user.entity.User;
 import ktb.week4.community.domain.user.entity.UserTestBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -55,5 +56,24 @@ class ArticleQueryServiceTest {
 		assertThat(res).isNotNull();
 		assertThat(res.articles()).hasSize(2);
 		assertThat(res.articles().get(0).createdAt()).isAfter(res.articles().get(1).createdAt());
+	}
+	
+	@Test
+	@DisplayName("삭제된 유저의 게시글 조회 시 작성자 정보가 삭제된 이용자로 반환된다.")
+	void givenDeletedUser_whenGetArticles_thenWrittenByEmptyDto() {
+		// given
+		User deletedUser = UserTestBuilder.aUser().build();
+		deletedUser.deleteUser();
+		Article article = ArticleTestBuilder.anArticle().withUser(deletedUser).build();
+		
+		when(articleRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc(any(PageRequest.class)))
+				.thenReturn(new PageImpl<>(List.of(article), PageRequest.of(0, 10), 1));
+		
+		// when
+		GetArticlesResponseDto res = articleQueryService.getArticles(1, 10);
+		
+		// then
+		assertThat(res.articles()).hasSize(1);
+		assertThat(res.articles().getFirst().writtenBy()).isEqualTo(WrittenByResponseDto.emptyWrittenByDto());
 	}
 }

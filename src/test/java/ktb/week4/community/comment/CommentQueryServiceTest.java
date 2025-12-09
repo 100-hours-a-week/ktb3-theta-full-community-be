@@ -8,6 +8,7 @@ import ktb.week4.community.domain.comment.entity.Comment;
 import ktb.week4.community.domain.comment.entity.CommentTestBuilder;
 import ktb.week4.community.domain.comment.repository.CommentRepository;
 import ktb.week4.community.domain.comment.service.CommentQueryService;
+import ktb.week4.community.domain.user.dto.WrittenByResponseDto;
 import ktb.week4.community.domain.user.entity.User;
 import ktb.week4.community.domain.user.entity.UserTestBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -62,5 +63,26 @@ class CommentQueryServiceTest {
 		assertThat(res).isNotNull();
 		assertThat(res.comments()).hasSize(2);
 		assertThat(res.comments().get(0).createdAt()).isBefore(res.comments().get(1).createdAt());
+	}
+	
+	@Test
+	@DisplayName("삭제된 유저의 댓글 조회 시 작성자 정보가 삭제된 이용자로 반환된다.")
+	void givenDeletedUserComment_whenGetComments_thenWrittenByEmptyDto() {
+		// given
+		User deletedUser = UserTestBuilder.aUser().build();
+		deletedUser.deleteUser();
+		Article article = ArticleTestBuilder.anArticle().withUser(deletedUser).build();
+		Comment deletedUserComment = CommentTestBuilder.aComment().withUser(deletedUser).withArticle(article).build();
+		
+		when(articleLoader.getArticleById(1L)).thenReturn(article);
+		when(commentRepository.findAllByArticleId(eq(1L), any(PageRequest.class)))
+				.thenReturn(new PageImpl<>(List.of(deletedUserComment), PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "createdAt")), 1));
+		
+		// when
+		GetCommentsResponseDto res = commentQueryService.getComments(1L, 1, 10);
+		
+		// then
+		assertThat(res.comments()).hasSize(1);
+		assertThat(res.comments().getFirst().writtenBy()).isEqualTo(WrittenByResponseDto.emptyWrittenByDto());
 	}
 }
