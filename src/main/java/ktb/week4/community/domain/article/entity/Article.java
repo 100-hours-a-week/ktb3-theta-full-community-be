@@ -60,14 +60,6 @@ public class Article extends BaseEntity {
 		this.commentCount++;
 	}
 	
-	public void increaseLikeCount() {
-		this.likeCount++;
-	}
-	
-	public void decreaseLikeCount() {
-		this.likeCount--;
-	}
-	
 	public void decreaseCommentCount() {
 		this.commentCount--;
 	}

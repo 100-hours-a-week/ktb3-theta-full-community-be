@@ -5,8 +5,6 @@ import ktb.week4.community.domain.article.entity.ArticleTestBuilder;
 import ktb.week4.community.domain.article.loader.ArticleLoader;
 import ktb.week4.community.domain.article.repository.ArticleRepository;
 import ktb.week4.community.domain.like.dto.LikeResponseDto;
-import ktb.week4.community.domain.like.entity.LikeArticle;
-import ktb.week4.community.domain.like.entity.LikeArticleTestBuilder;
 import ktb.week4.community.domain.like.repository.LikeRepository;
 import ktb.week4.community.domain.like.service.LikeCommandService;
 import ktb.week4.community.domain.like.service.LikeQueryService;
@@ -21,10 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,13 +52,15 @@ public class LikeServiceTest {
 		article = spy(ArticleTestBuilder.anArticle()
 				.withUser(user)
 				.build());
+		doReturn(1L).when(user).getId();
+		doReturn(1L).when(article).getId();
+		doReturn(0).when(article).getLikeCount();
 	}
 	
 	@Test
 	@DisplayName("좋아요를 누른 유저가 좋아요 조회 시 isLiked가 true이다.")
 	void givenLikedUser_whenGetLikeStatus_thenIsLikedTrue() {
 		// given
-		article.increaseLikeCount();
 		when(articleLoader.getArticleById(1L)).thenReturn(article);
 		when(likeRepository.existsByUserIdAndArticleId(1L, 1L)).thenReturn(true);
 		
@@ -81,7 +78,6 @@ public class LikeServiceTest {
 	@DisplayName("좋아요를 누르지 않은 유저가 좋아요 조회 시 isLiked가 false이다.")
 	void givenUnlikedUser_whenGetLikeStatus_thenIsLikedFalse() {
 		// given
-		article.increaseLikeCount();
 		when(articleLoader.getArticleById(1L)).thenReturn(article);
 		when(likeRepository.existsByUserIdAndArticleId(2L, 1L)).thenReturn(false);
 		
@@ -114,12 +110,7 @@ public class LikeServiceTest {
 		// given
 		when(articleLoader.getArticleById(1L)).thenReturn(article);
 		when(userLoader.getUserById(1L)).thenReturn(user);
-		when(likeRepository.existsByUserIdAndArticleId(1L, 1L)).thenReturn(false);
-		when(likeRepository.save(any(LikeArticle.class))).thenReturn(LikeArticleTestBuilder.aLikeArticle()
-				.withArticle(article)
-				.withUser(user)
-				.build());
-		when(articleRepository.save(article)).thenReturn(article);
+		when(likeRepository.insertLikeIgnoringDuplication(1L, 1L)).thenReturn(1);
 		
 		// when
 		LikeResponseDto res = likeCommandService.likeArticle(1L, 1L);
@@ -129,31 +120,42 @@ public class LikeServiceTest {
 		assertThat(res.articleId()).isEqualTo(1L);
 		assertThat(res.isLiked()).isTrue();
 		assertThat(res.likeCount()).isEqualTo(article.getLikeCount());
-		assertThat(article.getLikeCount()).isEqualTo(1);
-		verify(likeRepository).save(any(LikeArticle.class));
-		verify(articleRepository).save(article);
+		verify(likeRepository).insertLikeIgnoringDuplication(1L, 1L);
+		verify(articleRepository).updateLikeCount(1L, 1);
+	}
+	
+	@Test
+	@DisplayName("이미 좋아요 누른 상태에서 좋아요 호출 시 likeCount 업데이트가 일어나지 않는다.")
+	void givenDuplicateLike_whenLikeArticle_thenDoesNotUpdateCount() {
+		// given
+		when(articleLoader.getArticleById(1L)).thenReturn(article);
+		when(userLoader.getUserById(1L)).thenReturn(user);
+		when(likeRepository.insertLikeIgnoringDuplication(1L, 1L)).thenReturn(0);
+		
+		// when
+		LikeResponseDto res = likeCommandService.likeArticle(1L, 1L);
+		
+		// then
+		assertThat(res).isNotNull();
+		assertThat(res.articleId()).isEqualTo(1L);
+		assertThat(res.isLiked()).isTrue();
+		assertThat(res.likeCount()).isEqualTo(article.getLikeCount());
+		verify(likeRepository).insertLikeIgnoringDuplication(1L, 1L);
+		verify(articleRepository, never()).updateLikeCount(anyLong(), anyInt());
 	}
 	
 	@Test
 	@DisplayName("좋아요 취소 시 likeCount가 1 감소한다.")
 	void givenUser_whenUnlikeArticle_thenDecrementsCount() {
 		// given
-		article.increaseLikeCount();
-		LikeArticle like = LikeArticleTestBuilder.aLikeArticle()
-				.withArticle(article)
-				.withUser(user)
-				.build();
-		
 		when(articleLoader.getArticleById(1L)).thenReturn(article);
-		when(likeRepository.findByUserIdAndArticleId(1L, 1L)).thenReturn(Optional.of(like));
-		when(articleRepository.save(article)).thenReturn(article);
+		when(likeRepository.deleteLikeIgnoringDuplication(1L, 1L)).thenReturn(1);
 		
 		// when
 		likeCommandService.unlikeArticle(1L, 1L);
 		
 		// then
-		assertThat(article.getLikeCount()).isEqualTo(0);
-		verify(likeRepository).delete(like);
-		verify(articleRepository).save(article);
+		verify(likeRepository).deleteLikeIgnoringDuplication(1L, 1L);
+		verify(articleRepository).updateLikeCount(1L, -1);
 	}
 }

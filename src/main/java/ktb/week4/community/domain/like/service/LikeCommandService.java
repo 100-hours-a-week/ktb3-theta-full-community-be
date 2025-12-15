@@ -3,7 +3,6 @@ package ktb.week4.community.domain.like.service;
 import ktb.week4.community.domain.article.entity.Article;
 import ktb.week4.community.domain.article.repository.ArticleRepository;
 import ktb.week4.community.domain.like.dto.LikeResponseDto;
-import ktb.week4.community.domain.like.entity.LikeArticle;
 import ktb.week4.community.domain.like.repository.LikeRepository;
 import ktb.week4.community.domain.article.loader.ArticleLoader;
 import ktb.week4.community.domain.user.entity.User;
@@ -26,20 +25,20 @@ public class LikeCommandService {
 		Article article = articleLoader.getArticleById(articleId);
 		User user = userLoader.getUserById(userId);
 		
-        if (!likeRepository.existsByUserIdAndArticleId(userId, articleId)) {
-            likeRepository.save(new LikeArticle(article, user));
-			article.increaseLikeCount();
-			articleRepository.save(article);
-        }
-
+		int updated = 	likeRepository.insertLikeIgnoringDuplication(article.getId(), user.getId());
+		if(updated <= 0) {
+			return new LikeResponseDto(articleId, article.getLikeCount(), true);
+		}
+		
+		articleRepository.updateLikeCount(articleId, 1);
         return new LikeResponseDto(articleId, article.getLikeCount(), true);
     }
 
     public void unlikeArticle(Long articleId, Long userId) {
 		Article article = articleLoader.getArticleById(articleId);
 		
-        likeRepository.findByUserIdAndArticleId(userId, articleId).ifPresent(likeRepository::delete);
-		article.decreaseLikeCount();
-		articleRepository.save(article);
+		if(likeRepository.deleteLikeIgnoringDuplication(article.getId(), userId) == 1) {
+			articleRepository.updateLikeCount(articleId, -1);
+		}
     }
 }

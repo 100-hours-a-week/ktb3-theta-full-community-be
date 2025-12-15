@@ -46,7 +46,7 @@ class ArticleQueryServiceTest {
 		doReturn(now.minusDays(1)).when(older).getCreatedAt();
 		doReturn(now).when(newer).getCreatedAt();
 		
-		when(articleRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc(any(PageRequest.class)))
+		when(articleRepository.findAllByOrderByCreatedAtDesc(any(PageRequest.class)))
 				.thenReturn(new PageImpl<>(List.of(newer, older), PageRequest.of(0, 10), 2));
 		
 		// when
@@ -66,7 +66,7 @@ class ArticleQueryServiceTest {
 		deletedUser.deleteUser();
 		Article article = ArticleTestBuilder.anArticle().withUser(deletedUser).build();
 		
-		when(articleRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc(any(PageRequest.class)))
+		when(articleRepository.findAllByOrderByCreatedAtDesc(any(PageRequest.class)))
 				.thenReturn(new PageImpl<>(List.of(article), PageRequest.of(0, 10), 1));
 		
 		// when
