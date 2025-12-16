@@ -24,7 +24,8 @@ public class ArticleQueryService {
 	private final ArticleLoader articleLoader;
 	
     public GetArticlesResponseDto getArticles(int page, int size) {
-        Page<Article> articles = articleRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(page-1, size));
+        Page<Article> articles = articleRepository.findAllNotDeletedOrderByCreatedAtDesc(
+				PageRequest.of(page-1, size));
 		
 		List<ArticleResponseDto> responses = articles.stream()
                 .map(article -> {

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ktb.week4.community.domain.article.controller.ArticleController;
 import ktb.week4.community.domain.article.dto.CreateArticleRequestDto;
 import ktb.week4.community.domain.article.dto.UpdateArticleRequestDto;
+import ktb.week4.community.domain.article.enums.PostTheme;
 import ktb.week4.community.domain.article.service.ArticleCommandService;
 import ktb.week4.community.domain.article.service.ArticleQueryService;
 import ktb.week4.community.global.config.SecurityConfig;
@@ -50,7 +51,7 @@ class ArticleControllerTest {
 	@DisplayName("createArticle이 multipart/form-data가 아니면 요청이 실패한다.")
 	@WithMockUser
 	void givenNonMultipart_whenCreateArticle_thenReturnsClientError() throws Exception {
-		CreateArticleRequestDto dto = new CreateArticleRequestDto("title", "content", null);
+		CreateArticleRequestDto dto = new CreateArticleRequestDto("title", "content", null, PostTheme.NONE);
 		
 		assertThat(mockMvc
 				.post().uri("/articles")
@@ -63,7 +64,7 @@ class ArticleControllerTest {
 	@DisplayName("updateArticle이 multipart/form-data가 아니면 요청이 실패한다.")
 	@WithMockUser
 	void givenNonMultipart_whenUpdateArticle_thenReturnsClientError() throws Exception {
-		UpdateArticleRequestDto dto = new UpdateArticleRequestDto("title", "content", null);
+		UpdateArticleRequestDto dto = new UpdateArticleRequestDto("title", "content", null, PostTheme.NONE);
 		
 		assertThat(mockMvc
 				.patch().uri("/articles/{articleId}", 1L)

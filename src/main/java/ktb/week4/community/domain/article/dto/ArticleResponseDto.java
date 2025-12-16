@@ -2,6 +2,7 @@ package ktb.week4.community.domain.article.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import ktb.week4.community.domain.article.entity.Article;
+import ktb.week4.community.domain.article.enums.PostTheme;
 import ktb.week4.community.domain.user.dto.WrittenByResponseDto;
 import ktb.week4.community.domain.user.entity.User;
 
@@ -13,15 +14,16 @@ public record ArticleResponseDto(
 		Long articleId,
 		
 		String title,
-		String content,
-		
-		@JsonProperty("article_image")
-		String articleImage,
-		
-		int likeCount,
-		int commentCount,
-		int viewCount,
-		LocalDateTime createdAt,
+	String content,
+	
+	@JsonProperty("article_image")
+	String articleImage,
+	PostTheme theme,
+	
+	int likeCount,
+	int commentCount,
+	int viewCount,
+	LocalDateTime createdAt,
 		WrittenByResponseDto writtenBy
 ) {
 	public static ArticleResponseDto fromEntity(
@@ -30,6 +32,7 @@ public record ArticleResponseDto(
 				article.getTitle(),
 				article.getContent(),
 				article.getArticleImage(),
+				article.getTheme(),
 				article.getLikeCount(),
 				article.getCommentCount(),
 				article.getViewCount(),
@@ -42,6 +45,7 @@ public record ArticleResponseDto(
 				article.getTitle(),
 				article.getContent(),
 				article.getArticleImage(),
+				article.getTheme(),
 				article.getLikeCount(),
 				article.getCommentCount(),
 				article.getViewCount(),

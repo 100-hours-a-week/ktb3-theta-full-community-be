@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import ktb.week4.community.domain.user.entity.User;
 import ktb.week4.community.global.common.BaseEntity;
 import lombok.*;
+import ktb.week4.community.domain.article.enums.PostTheme;
 
 import java.time.LocalDateTime;
 
@@ -23,6 +24,10 @@ public class Article extends BaseEntity {
 	
 	private String articleImage;
 	
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 32)
+	private PostTheme theme = PostTheme.NONE;
+	
 	private int likeCount;
 	private int viewCount;
 	private int commentCount;
@@ -33,10 +38,11 @@ public class Article extends BaseEntity {
 	@JoinColumn(name = "user_id")
 	private User user;
 	
-	public Article(String title, String content, String articleImage, User user) {
+	public Article(String title, String content, String articleImage, PostTheme theme, User user) {
 		this.title = title;
 		this.content = content;
 		this.articleImage = articleImage;
+		this.theme = theme == null ? PostTheme.NONE : theme;
 		this.user = user;
 	}
 	
@@ -64,7 +70,19 @@ public class Article extends BaseEntity {
 		this.commentCount--;
 	}
 	
+	public void changeTheme(PostTheme theme) {
+		this.theme = theme == null ? PostTheme.NONE : theme;
+	}
+	
 	public void deleteArticle() {
 		this.deletedAt = LocalDateTime.now();
+	}
+	
+	@PrePersist
+	@PreUpdate
+	private void applyDefaultTheme() {
+		if (this.theme == null) {
+			this.theme = PostTheme.NONE;
+		}
 	}
 }

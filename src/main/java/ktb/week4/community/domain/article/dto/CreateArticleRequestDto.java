@@ -3,6 +3,7 @@ package ktb.week4.community.domain.article.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import ktb.week4.community.domain.article.enums.PostTheme;
 
 public record CreateArticleRequestDto(
 		@Schema(description = "게시글 제목", example = "글 제목입니다.")
@@ -15,6 +16,9 @@ public record CreateArticleRequestDto(
 		
 		@Schema(description = "게시글 내 이미지", example = "게시글 내에 이미지가 있는 경우, url을 첨부해주세요.")
 		@JsonProperty("article_image")
-		String articleImage
+		String articleImage,
+		
+		@Schema(description = "게시글 테마", example = "FREE", nullable = true)
+		PostTheme theme
 ) {
 }

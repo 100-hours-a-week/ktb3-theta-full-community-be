@@ -5,5 +5,5 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ArticleRepositoryCustom {
-	Page<Article> findAllByOrderByCreatedAtDesc(Pageable pageable);
+	Page<Article> findAllNotDeletedOrderByCreatedAtDesc(Pageable pageable);
 }

@@ -7,6 +7,7 @@ import ktb.week4.community.domain.article.entity.Article;
 import ktb.week4.community.domain.article.loader.ArticleLoader;
 import ktb.week4.community.domain.article.policy.ArticlePolicy;
 import ktb.week4.community.domain.article.repository.ArticleRepository;
+import ktb.week4.community.domain.article.enums.PostTheme;
 import ktb.week4.community.domain.user.entity.User;
 import ktb.week4.community.domain.user.loader.UserLoader;
 import ktb.week4.community.global.file.FileStorageService;
@@ -42,6 +43,7 @@ public class ArticleCommandService {
 						request.title(),
 						request.content(),
 						articleImage,
+						defaultTheme(request.theme()),
 						writtenBy
 				)
 		);
@@ -75,6 +77,7 @@ public class ArticleCommandService {
 				article.changeArticleImage(request.articleImage());
 			}
 		}
+		article.changeTheme(defaultTheme(request.theme()));
 		
 		Article updatedArticle = articleRepository.save(article);
 		return ArticleResponseDto.fromEntity(updatedArticle, writtenBy);
@@ -87,5 +90,9 @@ public class ArticleCommandService {
 		
 		article.deleteArticle();
 		articleRepository.save(article);
+	}
+	
+	private PostTheme defaultTheme(PostTheme theme) {
+		return theme == null ? PostTheme.NONE : theme;
 	}
 }

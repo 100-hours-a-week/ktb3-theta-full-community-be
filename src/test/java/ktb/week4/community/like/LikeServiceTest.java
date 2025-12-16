@@ -52,9 +52,6 @@ public class LikeServiceTest {
 		article = spy(ArticleTestBuilder.anArticle()
 				.withUser(user)
 				.build());
-		doReturn(1L).when(user).getId();
-		doReturn(1L).when(article).getId();
-		doReturn(0).when(article).getLikeCount();
 	}
 	
 	@Test
@@ -110,6 +107,8 @@ public class LikeServiceTest {
 		// given
 		when(articleLoader.getArticleById(1L)).thenReturn(article);
 		when(userLoader.getUserById(1L)).thenReturn(user);
+		doReturn(1L).when(article).getId();
+		doReturn(1L).when(user).getId();
 		when(likeRepository.insertLikeIgnoringDuplication(1L, 1L)).thenReturn(1);
 		
 		// when
@@ -130,6 +129,8 @@ public class LikeServiceTest {
 		// given
 		when(articleLoader.getArticleById(1L)).thenReturn(article);
 		when(userLoader.getUserById(1L)).thenReturn(user);
+		doReturn(1L).when(article).getId();
+		doReturn(1L).when(user).getId();
 		when(likeRepository.insertLikeIgnoringDuplication(1L, 1L)).thenReturn(0);
 		
 		// when
@@ -149,6 +150,7 @@ public class LikeServiceTest {
 	void givenUser_whenUnlikeArticle_thenDecrementsCount() {
 		// given
 		when(articleLoader.getArticleById(1L)).thenReturn(article);
+		doReturn(1L).when(article).getId();
 		when(likeRepository.deleteLikeIgnoringDuplication(1L, 1L)).thenReturn(1);
 		
 		// when

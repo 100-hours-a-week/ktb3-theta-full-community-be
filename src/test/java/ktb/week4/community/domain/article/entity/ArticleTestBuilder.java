@@ -1,5 +1,6 @@
 package ktb.week4.community.domain.article.entity;
 
+import ktb.week4.community.domain.article.enums.PostTheme;
 import ktb.week4.community.domain.user.entity.User;
 import ktb.week4.community.domain.user.entity.UserTestBuilder;
 
@@ -10,6 +11,7 @@ public class ArticleTestBuilder {
     private String title = "Title-" + UUID.randomUUID();
     private String content = "테스트용 본문";
     private String articleImage = "/upload/test.png";
+    private PostTheme theme = PostTheme.NONE;
     private User user;
 
     private ArticleTestBuilder() {
@@ -34,6 +36,11 @@ public class ArticleTestBuilder {
         return this;
     }
 
+    public ArticleTestBuilder withTheme(PostTheme theme) {
+        this.theme = theme;
+        return this;
+    }
+
     public ArticleTestBuilder withUser(User user) {
         this.user = user;
         return this;
@@ -41,6 +48,6 @@ public class ArticleTestBuilder {
 
     public Article build() {
         User author = user != null ? user : UserTestBuilder.aUser().build();
-        return new Article(title, content, articleImage, author);
+        return new Article(title, content, articleImage, theme, author);
     }
 }

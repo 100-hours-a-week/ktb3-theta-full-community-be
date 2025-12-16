@@ -5,6 +5,7 @@ import ktb.week4.community.domain.article.dto.CreateArticleRequestDto;
 import ktb.week4.community.domain.article.dto.UpdateArticleRequestDto;
 import ktb.week4.community.domain.article.entity.Article;
 import ktb.week4.community.domain.article.entity.ArticleTestBuilder;
+import ktb.week4.community.domain.article.enums.PostTheme;
 import ktb.week4.community.domain.article.loader.ArticleLoader;
 import ktb.week4.community.domain.article.policy.ArticlePolicy;
 import ktb.week4.community.domain.article.repository.ArticleRepository;
@@ -107,12 +108,13 @@ public class ArticleServiceTest {
 		
 		// given
 		CreateArticleRequestDto request = new CreateArticleRequestDto(
-				"게시글 제목입니다.", "게시글 내용입니다.", null
+				"게시글 제목입니다.", "게시글 내용입니다.", null, PostTheme.NONE
 		);
 		Article savedArticle = spy(new Article(
 				request.title(),
 				request.content(),
 				request.articleImage(),
+				request.theme(),
 				author
 		));
 		doReturn(1L).when(savedArticle).getId();
@@ -131,13 +133,31 @@ public class ArticleServiceTest {
 	}
 	
 	@Test
+	@DisplayName("테마가 누락되면 NONE으로 저장된다 - 생성")
+	void givenNullTheme_whenCreateArticle_thenDefaultsToNone() {
+		// given
+		CreateArticleRequestDto request = new CreateArticleRequestDto(
+				"제목", "내용", null, null
+		);
+		when(userLoader.getUserById(author.getId())).thenReturn(author);
+		when(fileStorageService.store(null, "articles")).thenReturn(null);
+		when(articleRepository.save(any(Article.class))).thenAnswer(invocation -> invocation.getArgument(0));
+		
+		// when
+		ArticleResponseDto response = articleCommandService.createArticle(author.getId(), request, null);
+		
+		// then
+		assertEquals(PostTheme.NONE, response.theme());
+	}
+	
+	@Test
 	@DisplayName("게시글 작성 시 저장된 파일 경로가 있으면 해당 경로로 이미지가 설정된다.")
 	void givenImageUpload_whenCreateArticle_thenUsesStoredImagePath() {
 		
 		// given
 		String storedPath = "/uploads/articles/stored.png";
 		CreateArticleRequestDto request = new CreateArticleRequestDto(
-				"제목", "내용", null
+				"제목", "내용", null, PostTheme.FREE
 		);
 		
 		when(userLoader.getUserById(author.getId())).thenReturn(author);
@@ -161,7 +181,7 @@ public class ArticleServiceTest {
 		when(articleLoader.getArticleById(article.getId())).thenReturn(article);
 		when(articleRepository.save(any(Article.class))).thenReturn(article);
 		UpdateArticleRequestDto validRequest = new UpdateArticleRequestDto(
-				"게시글 제목입니다.", "게시글 내용입니다.", null
+				"게시글 제목입니다.", "게시글 내용입니다.", null, PostTheme.QUESTION
 		);
 		
 		// when
@@ -173,6 +193,7 @@ public class ArticleServiceTest {
 		assertEquals(response.articleId(), article.getId());
 		assertEquals(response.title(), article.getTitle());
 		assertEquals(response.content(), article.getContent());
+		assertEquals(PostTheme.QUESTION, response.theme());
 	}
 	
 	@Test
@@ -182,7 +203,7 @@ public class ArticleServiceTest {
 		// given
 		String oldImage = article.getArticleImage();
 		String storedPath = "/uploads/articles/new.png";
-		UpdateArticleRequestDto request = new UpdateArticleRequestDto(null, null, null);
+		UpdateArticleRequestDto request = new UpdateArticleRequestDto(null, null, null, null);
 		
 		when(userLoader.getUserById(author.getId())).thenReturn(author);
 		when(articleLoader.getArticleById(article.getId())).thenReturn(article);
@@ -200,12 +221,31 @@ public class ArticleServiceTest {
 	}
 	
 	@Test
+	@DisplayName("게시글 수정 시 테마가 누락되면 NONE으로 변경된다.")
+	void givenNullTheme_whenUpdateArticle_thenDefaultsToNone() {
+		// given
+		article.changeTheme(PostTheme.INFO);
+		UpdateArticleRequestDto request = new UpdateArticleRequestDto(null, null, null, null);
+		
+		when(userLoader.getUserById(author.getId())).thenReturn(author);
+		when(articleLoader.getArticleById(article.getId())).thenReturn(article);
+		when(articleRepository.save(any(Article.class))).thenReturn(article);
+		
+		// when
+		ArticleResponseDto response = articleCommandService.updateArticle(author.getId(), article.getId(), request, null);
+		
+		// then
+		assertEquals(PostTheme.NONE, article.getTheme());
+		assertEquals(PostTheme.NONE, response.theme());
+	}
+	
+	@Test
 	@DisplayName("게시글 수정 시 이미지 값을 빈 문자열로 보내면 기존 이미지를 삭제하고 null로 설정한다.")
 	void givenBlankImage_whenUpdateArticle_thenDeletesAndClearsImage() {
 		
 		// given
 		String oldImage = article.getArticleImage();
-		UpdateArticleRequestDto request = new UpdateArticleRequestDto(null, null, " ");
+		UpdateArticleRequestDto request = new UpdateArticleRequestDto(null, null, " ", null);
 		
 		when(userLoader.getUserById(author.getId())).thenReturn(author);
 		when(articleLoader.getArticleById(article.getId())).thenReturn(article);
@@ -224,7 +264,7 @@ public class ArticleServiceTest {
 	void givenImagePath_whenUpdateArticle_thenSetsProvidedPath() {
 		
 		// given
-		UpdateArticleRequestDto request = new UpdateArticleRequestDto(null, null, "/uploads/articles/custom.png");
+		UpdateArticleRequestDto request = new UpdateArticleRequestDto(null, null, "/uploads/articles/custom.png", PostTheme.INFO);
 		
 		when(userLoader.getUserById(author.getId())).thenReturn(author);
 		when(articleLoader.getArticleById(article.getId())).thenReturn(article);
@@ -247,7 +287,7 @@ public class ArticleServiceTest {
 		when(userLoader.getUserById(user.getId())).thenReturn(user);
 		when(articleLoader.getArticleById(article.getId())).thenReturn(article);
 		UpdateArticleRequestDto validRequest = new UpdateArticleRequestDto(
-				"게시글 제목입니다.", "게시글 내용입니다.", null
+				"게시글 제목입니다.", "게시글 내용입니다.", null, PostTheme.NONE
 		);
 		doThrow(new GeneralException(ErrorCode.FORBIDDEN_REQUEST))
 				.when(articlePolicy)
